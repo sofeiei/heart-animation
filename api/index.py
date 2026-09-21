@@ -33,7 +33,6 @@ HTML_CONTENT = """
             height: 100%;
             z-index: 1;
         }
-        /* เลเยอร์ใส่ภาพป๊อปอัป */
         #popups-container {
             position: absolute;
             top: 0;
@@ -49,30 +48,31 @@ HTML_CONTENT = """
             width: 60px;
             height: 60px;
             object-fit: cover;
-            border-radius: 0; /* สี่เหลี่ยมจัตุรัส */
+            border-radius: 0;
             border: 2px solid #ff4d79;
             box-shadow: 0 0 15px rgba(255, 77, 121, 0.7);
             animation: popUpFloat 3.5s ease-out forwards;
         }
-        /* แอนิเมชันเด้งป๊อปอัปขยายและลอยขึ้น */
+        /* แก้ไขแอนิเมชันให้ลอยขึ้นบนตรงๆ และค่อยๆ จางหาย */
         @keyframes popUpFloat {
             0% {
-                transform: translate(-50%, -50%) scale(0) rotate(-10deg);
+                transform: translate(-50%, -50%) scale(0);
                 opacity: 0;
             }
-            20% {
-                transform: translate(-50%, -50%) scale(1.15) rotate(5deg);
+            25% {
+                transform: translate(-50%, -60%) scale(1.15);
                 opacity: 1;
             }
-            35% {
-                transform: translate(-50%, -50%) scale(1) rotate(0deg);
-                opacity: 0.95;
+            45% {
+                transform: translate(-50%, -70%) scale(1);
+                opacity: 1;
             }
-            80% {
+            75% {
+                transform: translate(-50%, -100%) scale(0.95);
                 opacity: 0.8;
             }
             100% {
-                transform: translate(-50%, -120px) scale(0.6) rotate(15deg);
+                transform: translate(-50%, -160%) scale(0.7);
                 opacity: 0;
             }
         }
@@ -88,13 +88,6 @@ HTML_CONTENT = """
             text-shadow: 0 0 12px rgba(255, 34, 85, 0.6);
             animation: pulseText 2.5s infinite ease-in-out;
             pointer-events: none;
-        }
-        .footer span {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            display: block;
-            margin-top: 5px;
-            letter-spacing: 1px;
         }
         @keyframes pulseText {
             0%, 100% { opacity: 0.8; transform: scale(1); }
@@ -123,37 +116,42 @@ HTML_CONTENT = """
             height = canvas.height = window.innerHeight;
         });
 
-        // รายการรูปภาพที่จะนำมาสุ่มป๊อปอัป (สามารถใส่ URL รูปภาพของคุณเองได้เลย)
         const photoUrls = [
             '/pic1.jpg',
             '/pic2.jpg',
             '/pic3.jpg'
         ];
 
-        // ฟังก์ชันสร้างรูปป๊อปอัปสุ่มตำแหน่งรอบ ๆ
+        // คำนวณขนาดย่อ/ขยายหัวใจตามความกว้างจอ (ไม่ให้ล้นจอมือถือ)
+        function getScale() {
+            const minDim = Math.min(width, height);
+            return Math.max(8, Math.min(16, minDim / 38));
+        }
+
+        // สุ่มรูปป๊อปอัปโดยจำกัดระยะให้อยู่ในขอบจอ
         function spawnPopup() {
             const img = document.createElement('img');
             img.className = 'popup-img';
             img.src = photoUrls[Math.floor(Math.random() * photoUrls.length)];
 
-            // สุ่มพิกัดรอบ ๆ จุดกึ่งกลางหน้าจอ
+            const scale = getScale();
             const angle = Math.random() * Math.PI * 2;
-            const distance = 80 + Math.random() * 200; // ระยะห่างจากจุดศูนย์กลาง
+            const maxDistance = Math.min(width * 0.35, 150);
+            const distance = (scale * 3) + Math.random() * (maxDistance - (scale * 3));
+
             const x = (width / 2) + Math.cos(angle) * distance;
-            const y = (height / 2 - 20) + Math.sin(angle) * distance;
+            const y = (height / 2 - 30) + Math.sin(angle) * distance;
 
             img.style.left = `${x}px`;
             img.style.top = `${y}px`;
 
             popupContainer.appendChild(img);
 
-            // ลบทิ้งเมื่อเล่นแอนิเมชันเสร็จ เพื่อไม่ให้เปลือง Memory
             setTimeout(() => {
                 img.remove();
             }, 3500);
         }
 
-        // ให้รูปเด้งขึ้นมาทุก ๆ 1.2 วินาที
         setInterval(spawnPopup, 1200);
 
         function heart1(m) {
@@ -165,7 +163,6 @@ HTML_CONTENT = """
         }
 
         const maxSteps = 600;
-        const scale = 16;
         let currentCount = 0;
         let mode = 'growing';
         let pauseTimer = 0;
@@ -174,7 +171,8 @@ HTML_CONTENT = """
             ctx.clearRect(0, 0, width, height);
 
             const centerX = width / 2;
-            const centerY = height / 2 - 20;
+            const centerY = height / 2 - 30; // ยกหัวใจขึ้นเล็กน้อยให้พอดีกับหน้าจอมือถือ
+            const scale = getScale();
 
             ctx.strokeStyle = '#ff1a3c';
             ctx.lineWidth = 1.2;
