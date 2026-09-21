@@ -66,7 +66,6 @@ HTML_CONTENT = """
     <!-- คุณสามารถแก้ไขข้อความใน Footer ตรงนี้ได้เลย -->
     <div class="footer">
         HAPPY ANNIVERSARY 1 YEAR 🎉
-        # <span>Forever & Always with you</span>
     </div>
 
     <script>
@@ -123,7 +122,7 @@ HTML_CONTENT = """
             } else {
                 // เมื่อวาดเต็มรูปแล้ว: ให้หยุดโชว์ไว้ประมาณ 1.5 วินาที
                 pauseTimer++;
-                if (pauseTimer > 90) {
+                if (pauseTimer > 60) {
                     // ค่อยๆ เฟดหน้าจอให้มืดลงก่อนเริ่มรอบใหม่
                     ctx.fillStyle = 'black';
                     ctx.fillRect(0, 0, width, height);
