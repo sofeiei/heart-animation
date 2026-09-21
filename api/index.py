@@ -46,14 +46,13 @@ HTML_CONTENT = """
         }
         .popup-img {
             position: absolute;
-            width: 60px;       /* ความกว้าง */
-            height: 60px;      /* ความสูงเท่ากันเพื่อให้เป็นจัตุรัส */
+            width: 60px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 0;  /* <-- แก้จาก 50% เป็น 0 (หรือใส่ 8px ถ้าอยากให้มุมมนนิดๆ) */
+            border-radius: 0; /* สี่เหลี่ยมจัตุรัส */
             border: 2px solid #ff4d79;
             box-shadow: 0 0 15px rgba(255, 77, 121, 0.7);
             animation: popUpFloat 3.5s ease-out forwards;
-        }
         }
         /* แอนิเมชันเด้งป๊อปอัปขยายและลอยขึ้น */
         @keyframes popUpFloat {
