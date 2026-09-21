@@ -2,7 +2,6 @@ from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# หน้าเว็บที่เรนเดอร์แอนิเมชันเส้นรังสีรูปหัวใจแบบในคลิป
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html lang="th">
@@ -20,17 +19,55 @@ HTML_CONTENT = """
             background-color: #000;
             overflow: hidden;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        /* ส่วนของ Footer ด้านล่าง */
+        .footer {
+            position: fixed;
+            bottom: 30px;
+            z-index: 10;
+            text-align: center;
+            color: #ff7597;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            font-weight: 300;
+            text-shadow: 0 0 12px rgba(255, 34, 85, 0.6);
+            animation: pulseText 2.5s infinite ease-in-out;
+            pointer-events: none;
+        }
+        .footer span {
+            font-size: 0.85rem;
+            opacity: 0.7;
             display: block;
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.03); text-shadow: 0 0 20px rgba(255, 34, 85, 0.9); }
         }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
+
+    <!-- คุณสามารถแก้ไขข้อความใน Footer ตรงนี้ได้เลย -->
+    <div class="footer">
+        ❤️ Happy 1st Anniversary ❤️
+        <span>Forever & Always with you</span>
+    </div>
 
     <script>
         const canvas = document.getElementById('canvas');
@@ -45,42 +82,56 @@ HTML_CONTENT = """
             resetAnimation();
         });
 
-        // ฟังก์ชันคำนวณตามสูตรคณิตศาสตร์ในคลิป
+        // ฟังก์ชันคำนวณพิกัดหัวใจ
         function heart1(m) {
             return 15 * Math.pow(Math.sin(m), 3);
         }
 
         function heart2(m) {
-            // ติดลบเพื่อให้แกน Y พุ่งขึ้นด้านบน
             return -(12 * Math.cos(m) - 5 * Math.cos(2 * m) - 2 * Math.cos(3 * m) - Math.cos(4 * m));
         }
 
         let i = 0;
         const maxSteps = 600;
         const scale = 16;
+        let pauseTimer = 0;
 
         function draw() {
             const centerX = width / 2;
-            const centerY = height / 2;
+            const centerY = height / 2 - 20; // ยกขึ้นเล็กน้อยให้สมดุลกับ footer
 
-            // วาดทีละ 2-3 เส้นต่อเฟรมเพื่อสร้างจังหวะวิ่งค่อยๆ แผ่กิ่งก้าน
-            for (let step = 0; step < 3; step++) {
-                if (i <= maxSteps) {
-                    const targetX = centerX + heart1(i) * scale;
-                    const targetY = centerY + heart2(i) * scale;
+            if (i <= maxSteps) {
+                // วาดทีละ 3 เส้นต่อเฟรม
+                for (let step = 0; step < 3; step++) {
+                    if (i <= maxSteps) {
+                        const targetX = centerX + heart1(i) * scale;
+                        const targetY = centerY + heart2(i) * scale;
 
-                    ctx.strokeStyle = '#ff1a3c';
-                    ctx.lineWidth = 1.2;
-                    ctx.shadowColor = '#ff2255';
-                    ctx.shadowBlur = 8;
+                        ctx.strokeStyle = '#ff1a3c';
+                        ctx.lineWidth = 1.2;
+                        ctx.shadowColor = '#ff2255';
+                        ctx.shadowBlur = 8;
 
-                    // ลากเส้นจากจุดศูนย์กลาง (0, 0) ไปยังเส้นรอบรูปหัวใจ
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.lineTo(targetX, targetY);
-                    ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, centerY);
+                        ctx.lineTo(targetX, targetY);
+                        ctx.stroke();
 
-                    i++;
+                        i++;
+                    }
+                }
+            } else {
+                // เมื่อวาดเต็มรูปแล้ว: ให้หยุดโชว์ไว้ประมาณ 1.5 วินาที
+                pauseTimer++;
+                if (pauseTimer > 90) {
+                    // ค่อยๆ เฟดหน้าจอให้มืดลงก่อนเริ่มรอบใหม่
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                    ctx.fillRect(0, 0, width, height);
+
+                    // เมื่อเฟดจนครบ ให้รีเซ็ตเริ่มวาดใหม่
+                    if (pauseTimer > 130) {
+                        resetAnimation();
+                    }
                 }
             }
 
@@ -90,6 +141,7 @@ HTML_CONTENT = """
         function resetAnimation() {
             ctx.clearRect(0, 0, width, height);
             i = 0;
+            pauseTimer = 0;
         }
 
         draw();
