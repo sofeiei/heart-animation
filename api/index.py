@@ -125,11 +125,9 @@ HTML_CONTENT = """
 
         // รายการรูปภาพที่จะนำมาสุ่มป๊อปอัป (สามารถใส่ URL รูปภาพของคุณเองได้เลย)
         const photoUrls = [
-            '/pic1.HEIC',
-            '/pic2.HEIC',
-            '/pic3.HEIC',
-            '/pic4.HEIC',
-            '/pic5.HEIC',
+            '/pic1.jpg',
+            '/pic2.jpg',
+            '/pic3.jpg'
         ];
 
         // ฟังก์ชันสร้างรูปป๊อปอัปสุ่มตำแหน่งรอบ ๆ
