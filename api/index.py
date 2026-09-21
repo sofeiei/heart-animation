@@ -33,6 +33,49 @@ HTML_CONTENT = """
             height: 100%;
             z-index: 1;
         }
+        /* เลเยอร์ใส่ภาพป๊อปอัป */
+        #popups-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+        .popup-img {
+            position: absolute;
+            width: 60px;       /* ขนาดความกว้างรูปเล็ก ๆ */
+            height: 60px;      /* ขนาดความสูงรูป */
+            object-fit: cover;
+            border-radius: 50%; /* ทำให้รูปกลม (ถ้าอยากได้สี่เหลี่ยมโค้งให้เปลี่ยนเป็น 12px) */
+            border: 2px solid #ff4d79;
+            box-shadow: 0 0 15px rgba(255, 77, 121, 0.7);
+            animation: popUpFloat 3.5s ease-out forwards;
+        }
+        /* แอนิเมชันเด้งป๊อปอัปขยายและลอยขึ้น */
+        @keyframes popUpFloat {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(-10deg);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.15) rotate(5deg);
+                opacity: 1;
+            }
+            35% {
+                transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                opacity: 0.95;
+            }
+            80% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -120px) scale(0.6) rotate(15deg);
+                opacity: 0;
+            }
+        }
         .footer {
             position: fixed;
             bottom: 30px;
@@ -61,15 +104,16 @@ HTML_CONTENT = """
 </head>
 <body>
     <canvas id="canvas"></canvas>
+    <div id="popups-container"></div>
 
-    <!-- ปรับแก้ข้อความที่ Footer ได้ตรงนี้ -->
     <div class="footer">
-        HAPPY ANNIVERSARY 1 YEAR, MY LOVE ♥️
+        HAPPY ANNIVERSARY 1 YEAR
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const popupContainer = document.getElementById('popups-container');
 
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
@@ -79,7 +123,41 @@ HTML_CONTENT = """
             height = canvas.height = window.innerHeight;
         });
 
-        // คำนวณพิกัดหัวใจ
+        // รายการรูปภาพที่จะนำมาสุ่มป๊อปอัป (สามารถใส่ URL รูปภาพของคุณเองได้เลย)
+        const photoUrls = [
+            '/pic1.HEIC',
+            '/pic2.HEIC',
+            '/pic3.HEIC',
+            '/pic4.HEIC',
+            '/pic5.HEIC',
+        ];
+
+        // ฟังก์ชันสร้างรูปป๊อปอัปสุ่มตำแหน่งรอบ ๆ
+        function spawnPopup() {
+            const img = document.createElement('img');
+            img.className = 'popup-img';
+            img.src = photoUrls[Math.floor(Math.random() * photoUrls.length)];
+
+            // สุ่มพิกัดรอบ ๆ จุดกึ่งกลางหน้าจอ
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 80 + Math.random() * 200; // ระยะห่างจากจุดศูนย์กลาง
+            const x = (width / 2) + Math.cos(angle) * distance;
+            const y = (height / 2 - 20) + Math.sin(angle) * distance;
+
+            img.style.left = `${x}px`;
+            img.style.top = `${y}px`;
+
+            popupContainer.appendChild(img);
+
+            // ลบทิ้งเมื่อเล่นแอนิเมชันเสร็จ เพื่อไม่ให้เปลือง Memory
+            setTimeout(() => {
+                img.remove();
+            }, 3500);
+        }
+
+        // ให้รูปเด้งขึ้นมาทุก ๆ 1.2 วินาที
+        setInterval(spawnPopup, 1200);
+
         function heart1(m) {
             return 15 * Math.pow(Math.sin(m), 3);
         }
@@ -91,7 +169,7 @@ HTML_CONTENT = """
         const maxSteps = 600;
         const scale = 16;
         let currentCount = 0;
-        let mode = 'growing'; // 'growing' (ขยายเพิ่ม), 'pause_full', 'shrinking' (หดลดลง), 'pause_empty'
+        let mode = 'growing';
         let pauseTimer = 0;
 
         function renderFrame() {
@@ -100,7 +178,6 @@ HTML_CONTENT = """
             const centerX = width / 2;
             const centerY = height / 2 - 20;
 
-            // วาดเส้นตามจำนวน currentCount ณ เฟรมนั้น ๆ
             ctx.strokeStyle = '#ff1a3c';
             ctx.lineWidth = 1.2;
             ctx.shadowColor = '#ff2255';
@@ -115,9 +192,8 @@ HTML_CONTENT = """
             }
             ctx.stroke();
 
-            // จัดการสเตตัสการเล่นแอนิเมชัน
             if (mode === 'growing') {
-                currentCount += 3; // ความเร็วตอนสร้างเส้น
+                currentCount += 3;
                 if (currentCount >= maxSteps) {
                     currentCount = maxSteps;
                     mode = 'pause_full';
@@ -125,12 +201,11 @@ HTML_CONTENT = """
                 }
             } else if (mode === 'pause_full') {
                 pauseTimer++;
-                // พักโชว์หัวใจเต็มดวงประมาณ 1.5 วินาที
                 if (pauseTimer > 70) {
                     mode = 'shrinking';
                 }
             } else if (mode === 'shrinking') {
-                currentCount -= 3; // ความเร็วตอนลดเส้นถอยหลัง
+                currentCount -= 3;
                 if (currentCount <= 0) {
                     currentCount = 0;
                     mode = 'pause_empty';
@@ -138,7 +213,6 @@ HTML_CONTENT = """
                 }
             } else if (mode === 'pause_empty') {
                 pauseTimer++;
-                // พักตอนว่างเปล่าประมาณ 0.5 วินาที ก่อนเริ่มสร้างใหม่
                 if (pauseTimer > 20) {
                     mode = 'growing';
                 }
