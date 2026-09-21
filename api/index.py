@@ -33,7 +33,6 @@ HTML_CONTENT = """
             height: 100%;
             z-index: 1;
         }
-        /* ส่วนของ Footer ด้านล่าง */
         .footer {
             position: fixed;
             bottom: 30px;
@@ -63,9 +62,9 @@ HTML_CONTENT = """
 <body>
     <canvas id="canvas"></canvas>
 
-    <!-- คุณสามารถแก้ไขข้อความใน Footer ตรงนี้ได้เลย -->
+    <!-- ปรับแก้ข้อความที่ Footer ได้ตรงนี้ -->
     <div class="footer">
-        HAPPY ANNIVERSARY 1 YEAR 🎉
+        HAPPY ANNIVERSARY 1 YEAR, MY LOVE ♥️
     </div>
 
     <script>
@@ -78,10 +77,9 @@ HTML_CONTENT = """
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            resetAnimation();
         });
 
-        // ฟังก์ชันคำนวณพิกัดหัวใจ
+        // คำนวณพิกัดหัวใจ
         function heart1(m) {
             return 15 * Math.pow(Math.sin(m), 3);
         }
@@ -90,60 +88,66 @@ HTML_CONTENT = """
             return -(12 * Math.cos(m) - 5 * Math.cos(2 * m) - 2 * Math.cos(3 * m) - Math.cos(4 * m));
         }
 
-        let i = 0;
         const maxSteps = 600;
         const scale = 16;
+        let currentCount = 0;
+        let mode = 'growing'; // 'growing' (ขยายเพิ่ม), 'pause_full', 'shrinking' (หดลดลง), 'pause_empty'
         let pauseTimer = 0;
 
-        function draw() {
+        function renderFrame() {
+            ctx.clearRect(0, 0, width, height);
+
             const centerX = width / 2;
-            const centerY = height / 2 - 20; // ยกขึ้นเล็กน้อยให้สมดุลกับ footer
+            const centerY = height / 2 - 20;
 
-            if (i <= maxSteps) {
-                // วาดทีละ 3 เส้นต่อเฟรม
-                for (let step = 0; step < 3; step++) {
-                    if (i <= maxSteps) {
-                        const targetX = centerX + heart1(i) * scale;
-                        const targetY = centerY + heart2(i) * scale;
+            // วาดเส้นตามจำนวน currentCount ณ เฟรมนั้น ๆ
+            ctx.strokeStyle = '#ff1a3c';
+            ctx.lineWidth = 1.2;
+            ctx.shadowColor = '#ff2255';
+            ctx.shadowBlur = 8;
 
-                        ctx.strokeStyle = '#ff1a3c';
-                        ctx.lineWidth = 1.2;
-                        ctx.shadowColor = '#ff2255';
-                        ctx.shadowBlur = 8;
+            ctx.beginPath();
+            for (let step = 0; step < currentCount; step++) {
+                const targetX = centerX + heart1(step) * scale;
+                const targetY = centerY + heart2(step) * scale;
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(targetX, targetY);
+            }
+            ctx.stroke();
 
-                        ctx.beginPath();
-                        ctx.moveTo(centerX, centerY);
-                        ctx.lineTo(targetX, targetY);
-                        ctx.stroke();
-
-                        i++;
-                    }
+            // จัดการสเตตัสการเล่นแอนิเมชัน
+            if (mode === 'growing') {
+                currentCount += 3; // ความเร็วตอนสร้างเส้น
+                if (currentCount >= maxSteps) {
+                    currentCount = maxSteps;
+                    mode = 'pause_full';
+                    pauseTimer = 0;
                 }
-            } else {
-                // เมื่อวาดเต็มรูปแล้ว: ให้หยุดโชว์ไว้ประมาณ 1.5 วินาที
+            } else if (mode === 'pause_full') {
                 pauseTimer++;
-                if (pauseTimer > 60) {
-                    // ค่อยๆ เฟดหน้าจอให้มืดลงก่อนเริ่มรอบใหม่
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(0, 0, width, height);
-
-                    // เมื่อเฟดจนครบ ให้รีเซ็ตเริ่มวาดใหม่
-                    if (pauseTimer > 130) {
-                        resetAnimation();
-                    }
+                // พักโชว์หัวใจเต็มดวงประมาณ 1.5 วินาที
+                if (pauseTimer > 70) {
+                    mode = 'shrinking';
+                }
+            } else if (mode === 'shrinking') {
+                currentCount -= 3; // ความเร็วตอนลดเส้นถอยหลัง
+                if (currentCount <= 0) {
+                    currentCount = 0;
+                    mode = 'pause_empty';
+                    pauseTimer = 0;
+                }
+            } else if (mode === 'pause_empty') {
+                pauseTimer++;
+                // พักตอนว่างเปล่าประมาณ 0.5 วินาที ก่อนเริ่มสร้างใหม่
+                if (pauseTimer > 20) {
+                    mode = 'growing';
                 }
             }
 
-            requestAnimationFrame(draw);
+            requestAnimationFrame(renderFrame);
         }
 
-        function resetAnimation() {
-            ctx.clearRect(0, 0, width, height);
-            i = 0;
-            pauseTimer = 0;
-        }
-
-        draw();
+        renderFrame();
     </script>
 </body>
 </html>
